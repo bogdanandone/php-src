@@ -4060,13 +4060,25 @@ void zend_compile_try(zend_ast *ast) /* {{{ */
 
 	uint32_t i;
 	zend_op *opline;
-	uint32_t try_catch_offset = zend_add_try_element(
-		get_next_op_number(CG(active_op_array)));
+	uint32_t try_catch_offset;
 	uint32_t *jmp_opnums = safe_emalloc(sizeof(uint32_t), catches->children, 0);
 
 	if (catches->children == 0 && !finally_ast) {
 		zend_error_noreturn(E_COMPILE_ERROR, "Cannot use try without catch or finally");
 	}
+
+	/* label: try { } must not be equal to try { label: } */
+	if (CG(context).labels) {
+		zend_label *label;
+		ZEND_HASH_REVERSE_FOREACH_PTR(CG(context).labels, label) {
+			if (label->opline_num == get_next_op_number(CG(active_op_array))) {
+				zend_emit_op(NULL, ZEND_NOP, NULL, NULL);
+			}
+			break;
+		} ZEND_HASH_FOREACH_END();
+	}
+
+	try_catch_offset = zend_add_try_element(get_next_op_number(CG(active_op_array)));
 
 	zend_compile_stmt(try_ast);
 
