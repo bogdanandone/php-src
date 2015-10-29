@@ -2646,7 +2646,7 @@ static int accel_startup(zend_extension *extension)
 			case ALLOC_FAILURE:
 				accel_startup_ok = 0;
 				zend_accel_error(ACCEL_LOG_FATAL, "Failure to initialize shared memory structures - probably not enough shared memory.");
-				return SUCCESS;
+				return FAILURE;
 			case SUCCESSFULLY_REATTACHED:
 				zend_shared_alloc_lock();
 				accel_shared_globals = (zend_accel_shared_globals *) ZSMMG(app_shared_globals);
