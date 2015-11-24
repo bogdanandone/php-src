@@ -285,44 +285,22 @@ static zend_always_inline int i_zend_is_true(zval *op)
 	int result = 0;
 
 again:
-	switch (Z_TYPE_P(op)) {
-		case IS_TRUE:
-			result = 1;
-			break;
-		case IS_LONG:
-			if (Z_LVAL_P(op)) {
-				result = 1;
-			}
-			break;
-		case IS_DOUBLE:
-			if (Z_DVAL_P(op)) {
-				result = 1;
-			}
-			break;
-		case IS_STRING:
-			if (Z_STRLEN_P(op) > 1 || (Z_STRLEN_P(op) && Z_STRVAL_P(op)[0] != '0')) {
-				result = 1;
-			}
-			break;
-		case IS_ARRAY:
-			if (zend_hash_num_elements(Z_ARRVAL_P(op))) {
-				result = 1;
-			}
-			break;
-		case IS_OBJECT:
-			result = zend_object_is_true(op);
-			break;
-		case IS_RESOURCE:
-			if (EXPECTED(Z_RES_HANDLE_P(op))) {
-				result = 1;
-			}
-			break;
-		case IS_REFERENCE:
-			op = Z_REFVAL_P(op);
-			goto again;
-			break;
-		default:
-			break;
+	if (Z_TYPE_P(op) == IS_REFERENCE) {
+		op = Z_REFVAL_P(op);
+		goto again;
+	} else {
+		/* linear calculation gives better results that traditional switch
+		 * as it avoids indirect branches which are hard to predict by the CPU.
+		 */
+		result = (
+				(Z_TYPE_P(op) == IS_LONG && Z_LVAL_P(op)) ||
+				(Z_TYPE_P(op) == IS_DOUBLE && Z_DVAL_P(op)) ||
+				(Z_TYPE_P(op) == IS_ARRAY && zend_hash_num_elements(Z_ARRVAL_P(op))) ||
+				(Z_TYPE_P(op) == IS_STRING &&
+					(Z_STRLEN_P(op) > 1 || (Z_STRLEN_P(op) && Z_STRVAL_P(op)[0] != '0'))) ||
+				(Z_TYPE_P(op) == IS_TRUE) ||
+				(Z_TYPE_P(op) == IS_OBJECT && zend_object_is_true(op))
+				);
 	}
 	return result;
 }
