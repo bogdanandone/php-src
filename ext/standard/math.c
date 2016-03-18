@@ -1381,6 +1381,7 @@ PHPAPI zend_string *_php_math_number_format_ex(double d, int dec, char *dec_poin
 	}
 
 	ZSTR_LEN(res) = reslen;
+	ZSTR_ZERO_OUT_TERMINATOR(res);
 	zend_string_release(tmpbuf);
 	return res;
 }

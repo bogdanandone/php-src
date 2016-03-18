@@ -3900,8 +3900,8 @@ carry_on:
 		php_stream_close(fp);
 	}
 
-	ZSTR_VAL(buf)[len] = '\0';
 	ZSTR_LEN(buf) = len;
+	ZSTR_ZERO_OUT_TERMINATOR(buf);
 	RETVAL_STR(buf);
 }
 /* }}}*/

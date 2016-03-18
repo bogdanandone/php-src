@@ -3569,7 +3569,7 @@ PHP_FUNCTION(pg_lo_read)
 	}
 
 	ZSTR_LEN(buf) = nbytes;
-	ZSTR_VAL(buf)[ZSTR_LEN(buf)] = '\0';
+	ZSTR_ZERO_OUT_TERMINATOR(buf);
 	RETURN_NEW_STR(buf);
 }
 /* }}} */
@@ -6857,6 +6857,7 @@ static inline int build_assignment_string(PGconn *pg_link, smart_str *querystr, 
 	} ZEND_HASH_FOREACH_END();
 	if (querystr->s) {
 		ZSTR_LEN(querystr->s) -= pad_len;
+		ZSTR_ZERO_OUT_TERMINATOR(querystr->s);
 	}
 
 	return 0;

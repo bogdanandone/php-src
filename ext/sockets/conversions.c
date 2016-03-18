@@ -161,6 +161,7 @@ static void do_from_to_zval_err(struct err_s *err,
 
 	if (path.s && ZSTR_LEN(path.s) > 3) {
 		ZSTR_LEN(path.s) -= 3;
+		ZSTR_ZERO_OUT_TERMINATOR(path.s);
 	}
 	smart_str_0(&path);
 

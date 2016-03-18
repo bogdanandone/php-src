@@ -949,6 +949,7 @@ static void _php_mb_regex_ereg_replace_exec(INTERNAL_FUNCTION_PARAMETERS, OnigOp
 				smart_str_appendl(&out_buf, Z_STRVAL(v), Z_STRLEN(v));
 				/* Clean up */
 				ZSTR_LEN(eval_buf.s) = 0;
+				ZSTR_ZERO_OUT_TERMINATOR(eval_buf.s);
 				zval_dtor(&v);
 			} else if (is_callable) {
 				zval args[1];
@@ -973,6 +974,7 @@ static void _php_mb_regex_ereg_replace_exec(INTERNAL_FUNCTION_PARAMETERS, OnigOp
 					smart_str_appendl(&out_buf, Z_STRVAL(retval), Z_STRLEN(retval));
 					if (eval_buf.s) {
 						ZSTR_LEN(eval_buf.s) = 0;
+						ZSTR_ZERO_OUT_TERMINATOR(eval_buf.s);
 					}
 					zval_ptr_dtor(&retval);
 				} else {

@@ -2088,6 +2088,7 @@ ZEND_FUNCTION(create_function)
 
 		do {
 			ZSTR_LEN(function_name) = snprintf(ZSTR_VAL(function_name) + 1, sizeof("lambda_")+MAX_LENGTH_OF_LONG, "lambda_%d", ++EG(lambda_count)) + 1;
+			ZSTR_ZERO_OUT_TERMINATOR(function_name);
 		} while (zend_hash_add_ptr(EG(function_table), function_name, func) == NULL);
 		RETURN_NEW_STR(function_name);
 	} else {

@@ -168,8 +168,8 @@ static void php_intl_idn_to_46(INTERNAL_FUNCTION_PARAMETERS,
 		php_error_docref(NULL, E_ERROR, "ICU returned an unexpected length");
 	}
 
-	ZSTR_VAL(buffer)[len] = '\0';
 	ZSTR_LEN(buffer) = len;
+	ZSTR_ZERO_OUT_TERMINATOR(buffer);
 
 	if (info.errors == 0) {
 		RETVAL_STR(buffer);

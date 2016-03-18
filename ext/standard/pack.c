@@ -507,8 +507,8 @@ PHP_FUNCTION(pack)
 
 	efree(formatcodes);
 	efree(formatargs);
-	ZSTR_VAL(output)[outputpos] = '\0';
 	ZSTR_LEN(output) = outputpos;
+	ZSTR_ZERO_OUT_TERMINATOR(output);
 	RETURN_NEW_STR(output);
 }
 /* }}} */

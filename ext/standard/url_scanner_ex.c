@@ -916,6 +916,7 @@ stop:
 
 	if (rest) memmove(ZSTR_VAL(ctx->buf.s), start, rest);
 	ZSTR_LEN(ctx->buf.s) = rest;
+	ZSTR_ZERO_OUT_TERMINATOR(ctx->buf.s);
 }
 
 

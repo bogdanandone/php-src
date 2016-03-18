@@ -553,8 +553,8 @@ static u_char *php_parserr(u_char *cp, u_char *end, querybuf *answer, int type_t
 					l1 = l1 + n + 1;
 					l2 = l2 + n;
 				}
-				ZSTR_VAL(tp)[l2] = '\0';
 				ZSTR_LEN(tp) = l2;
+				ZSTR_ZERO_OUT_TERMINATOR(tp);
 				cp += dlen;
 
 				add_assoc_str(subarray, "txt", tp);

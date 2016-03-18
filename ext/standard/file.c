@@ -1052,6 +1052,7 @@ PHPAPI PHP_FUNCTION(fgets)
 			str = zend_string_truncate(str, line_len, 0);
 		} else {
 			ZSTR_LEN(str) = line_len;
+			ZSTR_ZERO_OUT_TERMINATOR(str);
 		}
 		RETURN_NEW_STR(str);
 	}

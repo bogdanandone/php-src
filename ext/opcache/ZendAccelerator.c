@@ -478,6 +478,7 @@ zend_string *accel_new_interned_string(zend_string *str)
 	ZSTR_H(p->key) = ZSTR_H(str);
 	ZSTR_LEN(p->key) = ZSTR_LEN(str);
 	memcpy(ZSTR_VAL(p->key), ZSTR_VAL(str), ZSTR_LEN(str));
+	ZSTR_ZERO_OUT_TERMINATOR(p->key);
 	ZVAL_INTERNED_STR(&p->val, p->key);
 	Z_NEXT(p->val) = HT_HASH(&ZCSG(interned_strings), nIndex);
 	HT_HASH(&ZCSG(interned_strings), nIndex) = HT_IDX_TO_HASH(idx);

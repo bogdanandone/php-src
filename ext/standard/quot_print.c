@@ -137,8 +137,9 @@ PHPAPI zend_string *php_quot_print_decode(const unsigned char *str, size_t lengt
 		}
 	}
 
-	*p2 = '\0';
 	ZSTR_LEN(retval) = decoded_len;
+	ZSTR_ZERO_OUT_TERMINATOR(retval);
+
 	return retval;
 }
 /* }}} */
@@ -254,8 +255,8 @@ PHP_FUNCTION(quoted_printable_decode)
 			ZSTR_VAL(str_out)[j++] = str_in[i++];
 		}
 	}
-	ZSTR_VAL(str_out)[j] = '\0';
 	ZSTR_LEN(str_out) = j;
+	ZSTR_ZERO_OUT_TERMINATOR(str_out);
 
 	RETVAL_NEW_STR(str_out);
 }

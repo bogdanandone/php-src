@@ -1567,6 +1567,7 @@ PHP_FUNCTION(openssl_spki_new)
 	s = zend_string_alloc(strlen(spkac) + strlen(spkstr), 0);
 	sprintf(ZSTR_VAL(s), "%s%s", spkac, spkstr);
 	ZSTR_LEN(s) = strlen(ZSTR_VAL(s));
+	ZSTR_ZERO_OUT_TERMINATOR(s);
 
 	RETVAL_STR(s);
 	goto cleanup;
@@ -4817,8 +4818,8 @@ PHP_FUNCTION(openssl_sign)
 	EVP_SignUpdate(&md_ctx, data, data_len);
 	if (EVP_SignFinal (&md_ctx, (unsigned char*)ZSTR_VAL(sigbuf), &siglen, pkey)) {
 		zval_dtor(signature);
-		ZSTR_VAL(sigbuf)[siglen] = '\0';
 		ZSTR_LEN(sigbuf) = siglen;
+		ZSTR_ZERO_OUT_TERMINATOR(sigbuf);
 		ZVAL_NEW_STR(signature, sigbuf);
 		RETVAL_TRUE;
 	} else {
@@ -5175,8 +5176,8 @@ PHP_FUNCTION(openssl_digest)
 	EVP_DigestUpdate(&md_ctx, (unsigned char *)data, data_len);
 	if (EVP_DigestFinal (&md_ctx, (unsigned char *)ZSTR_VAL(sigbuf), &siglen)) {
 		if (raw_output) {
-			ZSTR_VAL(sigbuf)[siglen] = '\0';
 			ZSTR_LEN(sigbuf) = siglen;
+			ZSTR_ZERO_OUT_TERMINATOR(sigbuf);
 			RETVAL_STR(sigbuf);
 		} else {
 			int digest_str_len = siglen * 2;
@@ -5287,8 +5288,8 @@ PHP_FUNCTION(openssl_encrypt)
 	if (EVP_EncryptFinal(&cipher_ctx, (unsigned char *)ZSTR_VAL(outbuf) + i, &i)) {
 		outlen += i;
 		if (options & OPENSSL_RAW_DATA) {
-			ZSTR_VAL(outbuf)[outlen] = '\0';
 			ZSTR_LEN(outbuf) = outlen;
+			ZSTR_ZERO_OUT_TERMINATOR(outbuf);
 			RETVAL_STR(outbuf);
 		} else {
 			zend_string *base64_str;
@@ -5380,8 +5381,8 @@ PHP_FUNCTION(openssl_decrypt)
 	outlen = i;
 	if (EVP_DecryptFinal(&cipher_ctx, (unsigned char *)ZSTR_VAL(outbuf) + i, &i)) {
 		outlen += i;
-		ZSTR_VAL(outbuf)[outlen] = '\0';
 		ZSTR_LEN(outbuf) = outlen;
+		ZSTR_ZERO_OUT_TERMINATOR(outbuf);
 		RETVAL_STR(outbuf);
 	} else {
 		zend_string_release(outbuf);
@@ -5457,7 +5458,7 @@ PHP_FUNCTION(openssl_dh_compute_key)
 
 	if (len >= 0) {
 		ZSTR_LEN(data) = len;
-		ZSTR_VAL(data)[len] = 0;
+		ZSTR_ZERO_OUT_TERMINATOR(data);
 		RETVAL_STR(data);
 	} else {
 		zend_string_release(data);

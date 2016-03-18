@@ -61,8 +61,44 @@ END_EXTERN_C()
 
 #define _ZSTR_STRUCT_SIZE(len) (_ZSTR_HEADER_SIZE + len + 1)
 
+#define ZSTR_SET_TERMINATOR(zstr, len)	\
+	((zend_ulong *)(zstr))[((len)>>SIZEOF_ZEND_LONG_LOG2)-1] = Z_L(0)
+#if 1
+#define ZSTR_SET_MASKED_TERMINATOR(zstr, len)	\
+	do { \
+		unsigned _len = len; \
+		zend_ulong mask = \
+			( \
+			  Z_UL(1) << \
+				( \
+				  ((_len)&(SIZEOF_ZEND_LONG-1)) \
+				  << 3 \
+				) \
+			) - 1; \
+		((zend_ulong *)(ZSTR_VAL(zstr)))[((_len)>>SIZEOF_ZEND_LONG_LOG2)] &= mask; \
+	} \
+	while (0)
+#else
+static zend_always_inline void ZSTR_SET_MASKED_TERMINATOR(zend_string *zstr, size_t len)
+{
+	zend_ulong mask;
+	mask = ((len)&(SIZEOF_ZEND_LONG-1));
+	mask <<= 3;
+	mask = Z_UL(1) << mask;
+	mask -= 1;
+
+	((zend_ulong *)(ZSTR_VAL(zstr)))[((len)>>SIZEOF_ZEND_LONG_LOG2)] &= mask;
+}
+#endif
+
+#define ZSTR_ZERO_OUT_TERMINATOR(zstr) \
+		ZSTR_SET_MASKED_TERMINATOR(zstr, ZSTR_LEN(zstr))
+
+
 #define ZSTR_ALLOCA_ALLOC(str, _len, use_heap) do { \
+	size_t aligned_len = ZEND_MM_ALIGNED_SIZE(_ZSTR_STRUCT_SIZE(_len)); \
 	(str) = (zend_string *)do_alloca(ZEND_MM_ALIGNED_SIZE_EX(_ZSTR_STRUCT_SIZE(_len), 8), (use_heap)); \
+	ZSTR_SET_TERMINATOR((str), aligned_len); \
 	GC_REFCOUNT(str) = 1; \
 	GC_TYPE_INFO(str) = IS_STRING; \
 	zend_string_forget_hash_val(str); \
@@ -118,7 +154,9 @@ static zend_always_inline uint32_t zend_string_delref(zend_string *s)
 
 static zend_always_inline zend_string *zend_string_alloc(size_t len, int persistent)
 {
-	zend_string *ret = (zend_string *)pemalloc(ZEND_MM_ALIGNED_SIZE(_ZSTR_STRUCT_SIZE(len)), persistent);
+	size_t aligned_len = ZEND_MM_ALIGNED_SIZE(_ZSTR_STRUCT_SIZE(len));
+	zend_string *ret = (zend_string *)pemalloc(aligned_len, persistent);
+	ZSTR_SET_TERMINATOR(ret, aligned_len);
 
 	GC_REFCOUNT(ret) = 1;
 #if 1
@@ -136,7 +174,9 @@ static zend_always_inline zend_string *zend_string_alloc(size_t len, int persist
 
 static zend_always_inline zend_string *zend_string_safe_alloc(size_t n, size_t m, size_t l, int persistent)
 {
-	zend_string *ret = (zend_string *)safe_pemalloc(n, m, ZEND_MM_ALIGNED_SIZE(_ZSTR_STRUCT_SIZE(l)), persistent);
+	size_t aligned_len = ZEND_MM_ALIGNED_SIZE( (n * m) + _ZSTR_STRUCT_SIZE(l));
+	zend_string *ret = (zend_string *)safe_pemalloc(n, m, _ZSTR_STRUCT_SIZE(l), persistent);
+	ZSTR_SET_TERMINATOR(ret, aligned_len);
 
 	GC_REFCOUNT(ret) = 1;
 #if 1
@@ -181,10 +221,13 @@ static zend_always_inline zend_string *zend_string_dup(zend_string *s, int persi
 static zend_always_inline zend_string *zend_string_realloc(zend_string *s, size_t len, int persistent)
 {
 	zend_string *ret;
+	size_t aligned_len;
 
 	if (!ZSTR_IS_INTERNED(s)) {
 		if (EXPECTED(GC_REFCOUNT(s) == 1)) {
-			ret = (zend_string *)perealloc(s, ZEND_MM_ALIGNED_SIZE(_ZSTR_STRUCT_SIZE(len)), persistent);
+			aligned_len = ZEND_MM_ALIGNED_SIZE(_ZSTR_STRUCT_SIZE(len));
+			ret = (zend_string *)perealloc(s, aligned_len, persistent);
+			ZSTR_SET_MASKED_TERMINATOR(ret, len);
 			ZSTR_LEN(ret) = len;
 			zend_string_forget_hash_val(ret);
 			return ret;
@@ -200,11 +243,14 @@ static zend_always_inline zend_string *zend_string_realloc(zend_string *s, size_
 static zend_always_inline zend_string *zend_string_extend(zend_string *s, size_t len, int persistent)
 {
 	zend_string *ret;
+	size_t aligned_len;
 
 	ZEND_ASSERT(len >= ZSTR_LEN(s));
 	if (!ZSTR_IS_INTERNED(s)) {
 		if (EXPECTED(GC_REFCOUNT(s) == 1)) {
-			ret = (zend_string *)perealloc(s, ZEND_MM_ALIGNED_SIZE(_ZSTR_STRUCT_SIZE(len)), persistent);
+			aligned_len = ZEND_MM_ALIGNED_SIZE(_ZSTR_STRUCT_SIZE(len));
+			ret = (zend_string *)perealloc(s, aligned_len, persistent);
+			ZSTR_SET_MASKED_TERMINATOR(ret, len);
 			ZSTR_LEN(ret) = len;
 			zend_string_forget_hash_val(ret);
 			return ret;
@@ -212,6 +258,7 @@ static zend_always_inline zend_string *zend_string_extend(zend_string *s, size_t
 			GC_REFCOUNT(s)--;
 		}
 	}
+
 	ret = zend_string_alloc(len, persistent);
 	memcpy(ZSTR_VAL(ret), ZSTR_VAL(s), ZSTR_LEN(s) + 1);
 	return ret;
@@ -220,11 +267,14 @@ static zend_always_inline zend_string *zend_string_extend(zend_string *s, size_t
 static zend_always_inline zend_string *zend_string_truncate(zend_string *s, size_t len, int persistent)
 {
 	zend_string *ret;
+	size_t aligned_len;
 
 	ZEND_ASSERT(len <= ZSTR_LEN(s));
 	if (!ZSTR_IS_INTERNED(s)) {
 		if (EXPECTED(GC_REFCOUNT(s) == 1)) {
-			ret = (zend_string *)perealloc(s, ZEND_MM_ALIGNED_SIZE(_ZSTR_STRUCT_SIZE(len)), persistent);
+			aligned_len = ZEND_MM_ALIGNED_SIZE(_ZSTR_STRUCT_SIZE(len));
+			ret = (zend_string *)perealloc(s, aligned_len, persistent);
+			ZSTR_SET_MASKED_TERMINATOR(ret, len);
 			ZSTR_LEN(ret) = len;
 			zend_string_forget_hash_val(ret);
 			return ret;
@@ -240,10 +290,13 @@ static zend_always_inline zend_string *zend_string_truncate(zend_string *s, size
 static zend_always_inline zend_string *zend_string_safe_realloc(zend_string *s, size_t n, size_t m, size_t l, int persistent)
 {
 	zend_string *ret;
+	size_t aligned_len;
 
 	if (!ZSTR_IS_INTERNED(s)) {
 		if (GC_REFCOUNT(s) == 1) {
-			ret = (zend_string *)safe_perealloc(s, n, m, ZEND_MM_ALIGNED_SIZE(_ZSTR_STRUCT_SIZE(l)), persistent);
+			aligned_len = ZEND_MM_ALIGNED_SIZE( (m * n) + _ZSTR_STRUCT_SIZE(l));
+			ret = (zend_string *)safe_perealloc(s, n, m, _ZSTR_STRUCT_SIZE(l), persistent);
+			ZSTR_SET_MASKED_TERMINATOR(ret, (n * m) + l);
 			ZSTR_LEN(ret) = (n * m) + l;
 			zend_string_forget_hash_val(ret);
 			return ret;

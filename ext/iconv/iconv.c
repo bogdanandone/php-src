@@ -523,6 +523,7 @@ static php_iconv_err_t _php_iconv_appendl(smart_str *d, const char *s, size_t l,
 			buf_growth <<= 1;
 		}
 	}
+	ZSTR_ZERO_OUT_TERMINATOR(d->s);
 	return PHP_ICONV_ERR_SUCCESS;
 }
 /* }}} */
@@ -614,6 +615,7 @@ PHP_ICONV_API php_iconv_err_t php_iconv_string(const char *in_p, size_t in_len, 
 
 	ZSTR_VAL(out_buffer)[out_size - out_left] = '\0';
 	ZSTR_LEN(out_buffer) = out_size - out_left;
+	ZSTR_ZERO_OUT_TERMINATOR(out_buffer);
 
 	iconv_close(cd);
 
@@ -725,8 +727,8 @@ PHP_ICONV_API php_iconv_err_t php_iconv_string(const char *in_p, size_t in_len, 
 				return PHP_ICONV_ERR_UNKNOWN;
 		}
 	}
-	*out_p = '\0';
 	ZSTR_LEN(out_buf) = out_size;
+	ZSTR_ZERO_OUT_TERMINATOR(out_buf);
 	*out = out_buf;
 	return retval;
 #endif

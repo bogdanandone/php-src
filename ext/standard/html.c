@@ -1039,8 +1039,8 @@ invalid_code:
 		}
 	}
 
-	*q = '\0';
 	ZSTR_LEN(ret) = (size_t)(q - ZSTR_VAL(ret));
+	ZSTR_ZERO_OUT_TERMINATOR(ret);
 }
 /* }}} */
 
@@ -1120,6 +1120,7 @@ PHPAPI zend_string *php_unescape_html_entities(unsigned char *old, size_t oldlen
 	ret = zend_string_alloc(new_size, 0);
 	ZSTR_VAL(ret)[0] = '\0';
 	ZSTR_LEN(ret) = oldlen;
+	ZSTR_ZERO_OUT_TERMINATOR(ret);
 	retlen = oldlen;
 	if (retlen == 0) {
 		goto empty_source;
@@ -1432,8 +1433,8 @@ encode_amp:
 			}
 		}
 	}
-	ZSTR_VAL(replaced)[len] = '\0';
 	ZSTR_LEN(replaced) = len;
+	ZSTR_ZERO_OUT_TERMINATOR(replaced);
 
 	return replaced;
 }

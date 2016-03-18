@@ -608,6 +608,7 @@ PHP_FUNCTION( collator_get_sort_key )
 		RETURN_FALSE;
 	}
 	ZSTR_LEN(key_str) = key_len - 1;
+	ZSTR_ZERO_OUT_TERMINATOR(key_str);
 	RETVAL_NEW_STR(key_str);
 }
 /* }}} */

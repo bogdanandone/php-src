@@ -886,6 +886,7 @@ PHPAPI zend_string *vstrpprintf(size_t max_len, const char *format, va_list ap) 
 
 	if (max_len && ZSTR_LEN(buf.s) > max_len) {
 		ZSTR_LEN(buf.s) = max_len;
+		ZSTR_ZERO_OUT_TERMINATOR(buf.s);
 	}
 
 	smart_str_0(&buf);

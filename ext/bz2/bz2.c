@@ -380,7 +380,7 @@ static PHP_FUNCTION(bzread)
 	}
 	data = zend_string_alloc(len, 0);
 	ZSTR_LEN(data) = php_stream_read(stream, ZSTR_VAL(data), ZSTR_LEN(data));
-	ZSTR_VAL(data)[ZSTR_LEN(data)] = '\0';
+	ZSTR_ZERO_OUT_TERMINATOR(data);
 
 	RETURN_NEW_STR(data);
 }
@@ -547,7 +547,7 @@ static PHP_FUNCTION(bzcompress)
 		/* Copy the buffer, we have perhaps allocate a lot more than we need,
 		   so we erealloc() the buffer to the proper size */
 		ZSTR_LEN(dest) = dest_len;
-		ZSTR_VAL(dest)[ZSTR_LEN(dest)] = '\0';
+		ZSTR_ZERO_OUT_TERMINATOR(dest);
 		RETURN_NEW_STR(dest);
 	}
 }

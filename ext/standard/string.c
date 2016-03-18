@@ -1681,7 +1681,7 @@ PHP_FUNCTION(dirname)
 			ZSTR_LEN(ret) = zend_dirname(ZSTR_VAL(ret), str_len = ZSTR_LEN(ret));
 		} while (ZSTR_LEN(ret) < str_len && --levels);
 	}
-
+	ZSTR_ZERO_OUT_TERMINATOR(ret);
 	RETURN_NEW_STR(ret);
 }
 /* }}} */
@@ -2324,6 +2324,7 @@ static zend_string *php_chunk_split(char *src, size_t srclen, char *end, size_t 
 
 	*q = '\0';
 	ZSTR_LEN(dest) = q - ZSTR_VAL(dest);
+	ZSTR_ZERO_OUT_TERMINATOR(dest);
 
 	return dest;
 }
@@ -3824,6 +3825,7 @@ PHPAPI void php_stripcslashes(zend_string *str)
 	}
 
 	ZSTR_LEN(str) = nlen;
+	ZSTR_ZERO_OUT_TERMINATOR(str);
 }
 /* }}} */
 
@@ -3943,6 +3945,7 @@ do_escape:
 		new_str = zend_string_truncate(new_str, target - ZSTR_VAL(new_str), 0);
 	} else {
 		ZSTR_LEN(new_str) = target - ZSTR_VAL(new_str);
+		ZSTR_ZERO_OUT_TERMINATOR(new_str);
 	}
 
 	return new_str;
@@ -4494,6 +4497,7 @@ PHP_FUNCTION(strip_tags)
 
 	buf = zend_string_init(ZSTR_VAL(str), ZSTR_LEN(str), 0);
 	ZSTR_LEN(buf) = php_strip_tags_ex(ZSTR_VAL(buf), ZSTR_LEN(str), NULL, allowed_tags, allowed_tags_len, 0);
+	ZSTR_ZERO_OUT_TERMINATOR(buf);
 	RETURN_NEW_STR(buf);
 }
 /* }}} */
@@ -5408,7 +5412,7 @@ PHP_FUNCTION(str_pad)
 	for (i = 0; i < right_pad; i++)
 		ZSTR_VAL(result)[ZSTR_LEN(result)++] = pad_str[i % pad_str_len];
 
-	ZSTR_VAL(result)[ZSTR_LEN(result)] = '\0';
+	ZSTR_ZERO_OUT_TERMINATOR(result);
 
 	RETURN_NEW_STR(result);
 }
@@ -5622,7 +5626,7 @@ PHP_FUNCTION(money_format)
 		RETURN_FALSE;
 	}
 	ZSTR_LEN(str) = (size_t)res_len;
-	ZSTR_VAL(str)[ZSTR_LEN(str)] = '\0';
+	ZSTR_ZERO_OUT_TERMINATOR(str);
 
 	RETURN_NEW_STR(zend_string_truncate(str, ZSTR_LEN(str), 0));
 }

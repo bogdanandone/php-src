@@ -2195,6 +2195,7 @@ static HashTable *date_object_get_properties(zval *object) /* {{{ */
 					utc_offset > 0 ? '-' : '+',
 					abs(utc_offset / 60),
 					abs((utc_offset % 60)));
+				ZSTR_ZERO_OUT_TERMINATOR(tmpstr);
 
 				ZVAL_NEW_STR(&zv, tmpstr);
 				}
@@ -2287,6 +2288,7 @@ static HashTable *date_object_get_properties_timezone(zval *object) /* {{{ */
 			tzobj->tzi.utc_offset > 0 ? '-' : '+',
 			abs(tzobj->tzi.utc_offset / 60),
 			abs((tzobj->tzi.utc_offset % 60)));
+			ZSTR_ZERO_OUT_TERMINATOR(tmpstr);
 
 			ZVAL_NEW_STR(&zv, tmpstr);
 			}
@@ -3754,6 +3756,7 @@ PHP_FUNCTION(timezone_name_get)
 				utc_offset > 0 ? '-' : '+',
 				abs(utc_offset / 60),
 				abs((utc_offset % 60)));
+			ZSTR_ZERO_OUT_TERMINATOR(tmpstr);
 
 			RETURN_NEW_STR(tmpstr);
 			}

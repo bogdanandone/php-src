@@ -12,7 +12,7 @@
    | obtain it through the world-wide-web, please send a note to          |
    | license@php.net so we can mail you a copy immediately.               |
    +----------------------------------------------------------------------+
-   | Authors: Stig Sæther Bakken <ssb@php.net>                            |
+   | Authors: Stig Sï¿½ther Bakken <ssb@php.net>                            |
    |          Thies C. Arntzen <thies@thieso.net>                         |
    |          Sterling Hughes <sterling@php.net>                          |
    +----------------------------------------------------------------------+
@@ -641,7 +641,7 @@ PHP_XML_API zend_string *xml_utf8_decode(const XML_Char *s, size_t len, const XM
 
 		ZSTR_VAL(str)[ZSTR_LEN(str)++] = decoder ? decoder(c) : c;
 	}
-	ZSTR_VAL(str)[ZSTR_LEN(str)] = '\0';
+	ZSTR_ZERO_OUT_TERMINATOR(str);
 	if (ZSTR_LEN(str) < len) {
 		str = zend_string_truncate(str, ZSTR_LEN(str), 0);
 	}

@@ -1833,8 +1833,8 @@ convert_libmagic_pattern(zval *pattern, char *val, int len, int options)
 	if (options & PCRE_MULTILINE)
 		ZSTR_VAL(t)[j++] = 'm';
 
-	ZSTR_VAL(t)[j]='\0';
 	ZSTR_LEN(t) = j;
+	ZSTR_ZERO_OUT_TERMINATOR(t);
 
 	ZVAL_NEW_STR(pattern, t);
 }

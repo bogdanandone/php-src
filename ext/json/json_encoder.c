@@ -327,6 +327,7 @@ static void php_json_escape_string(smart_str *buf, char *s, size_t len, int opti
 			if (status != SUCCESS) {
 				if (buf->s) {
 					ZSTR_LEN(buf->s) = checkpoint;
+					ZSTR_ZERO_OUT_TERMINATOR(buf->s);
 				}
 				JSON_G(error_code) = PHP_JSON_ERROR_UTF8;
 				smart_str_appendl(buf, "null", 4);

@@ -376,6 +376,7 @@ PHPAPI zend_string *php_escape_shell_cmd(char *str)
 	}
 
 	ZSTR_LEN(cmd) = y;
+	ZSTR_ZERO_OUT_TERMINATOR(cmd);
 
 	return cmd;
 }
@@ -462,6 +463,8 @@ PHPAPI zend_string *php_escape_shell_arg(char *str)
 		cmd = zend_string_truncate(cmd, y, 0);
 	}
 	ZSTR_LEN(cmd) = y;
+	ZSTR_ZERO_OUT_TERMINATOR(cmd);
+
 	return cmd;
 }
 /* }}} */

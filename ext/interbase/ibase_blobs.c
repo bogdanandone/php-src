@@ -114,8 +114,8 @@ int _php_ibase_blob_get(zval *return_value, ibase_blob *ib_blob, zend_ulong max_
 			_php_ibase_error();
 			return FAILURE;
 		}
-		ZSTR_VAL(bl_data)[cur_len] = '\0';
 		ZSTR_LEN(bl_data) = cur_len;
+		ZSTR_ZERO_OUT_TERMINATOR(bl_data);
 		RETVAL_NEW_STR(bl_data);
 	} else { /* null blob */
 		RETVAL_EMPTY_STRING(); /* empty string */

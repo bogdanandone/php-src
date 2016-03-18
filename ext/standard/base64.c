@@ -88,6 +88,7 @@ PHPAPI zend_string *php_base64_encode(const unsigned char *str, size_t length) /
 	*p = '\0';
 
 	ZSTR_LEN(result) = (p - (unsigned char *)ZSTR_VAL(result));
+	ZSTR_ZERO_OUT_TERMINATOR(result);
 
 	return result;
 }
@@ -201,7 +202,7 @@ PHPAPI zend_string *php_base64_decode_ex(const unsigned char *str, size_t length
 		}
 	}
 	ZSTR_LEN(result) = j;
-	ZSTR_VAL(result)[ZSTR_LEN(result)] = '\0';
+	ZSTR_ZERO_OUT_TERMINATOR(result);
 
 	return result;
 }

@@ -2437,6 +2437,7 @@ ZEND_API void ZEND_FASTCALL _efree_huge(void *ptr, size_t size)
 
 ZEND_API void* ZEND_FASTCALL _emalloc(size_t size ZEND_FILE_LINE_DC ZEND_FILE_LINE_ORIG_DC)
 {
+	size = ZEND_MM_ALIGNED_SIZE(size);
 
 #if ZEND_MM_CUSTOM
 	if (UNEXPECTED(AG(mm_heap)->use_custom_heap)) {
@@ -2468,6 +2469,7 @@ ZEND_API void ZEND_FASTCALL _efree(void *ptr ZEND_FILE_LINE_DC ZEND_FILE_LINE_OR
 
 ZEND_API void* ZEND_FASTCALL _erealloc(void *ptr, size_t size ZEND_FILE_LINE_DC ZEND_FILE_LINE_ORIG_DC)
 {
+	size = ZEND_MM_ALIGNED_SIZE(size);
 
 	if (UNEXPECTED(AG(mm_heap)->use_custom_heap)) {
 		if (ZEND_DEBUG && AG(mm_heap)->use_custom_heap == ZEND_MM_CUSTOM_HEAP_DEBUG) {
@@ -2481,6 +2483,7 @@ ZEND_API void* ZEND_FASTCALL _erealloc(void *ptr, size_t size ZEND_FILE_LINE_DC 
 
 ZEND_API void* ZEND_FASTCALL _erealloc2(void *ptr, size_t size, size_t copy_size ZEND_FILE_LINE_DC ZEND_FILE_LINE_ORIG_DC)
 {
+	size = ZEND_MM_ALIGNED_SIZE(size);
 
 	if (UNEXPECTED(AG(mm_heap)->use_custom_heap)) {
 		if (ZEND_DEBUG && AG(mm_heap)->use_custom_heap == ZEND_MM_CUSTOM_HEAP_DEBUG) {
@@ -2550,12 +2553,15 @@ ZEND_API char* ZEND_FASTCALL _estrdup(const char *s ZEND_FILE_LINE_DC ZEND_FILE_
 {
 	size_t length;
 	char *p;
+	size_t aligned_size;
 
 	length = strlen(s);
-	if (UNEXPECTED(length + 1 == 0)) {
+	aligned_size = ZEND_MM_ALIGNED_SIZE(length + 1);
+
+	if (UNEXPECTED(aligned_size == 0)) {
 		zend_error_noreturn(E_ERROR, "Possible integer overflow in memory allocation (%zu * %zu + %zu)", 1, length, 1);
 	}
-	p = (char *) _emalloc(length + 1 ZEND_FILE_LINE_RELAY_CC ZEND_FILE_LINE_ORIG_RELAY_CC);
+	p = (char *) _emalloc(aligned_size ZEND_FILE_LINE_RELAY_CC ZEND_FILE_LINE_ORIG_RELAY_CC);
 	if (UNEXPECTED(p == NULL)) {
 		return p;
 	}
@@ -2566,11 +2572,12 @@ ZEND_API char* ZEND_FASTCALL _estrdup(const char *s ZEND_FILE_LINE_DC ZEND_FILE_
 ZEND_API char* ZEND_FASTCALL _estrndup(const char *s, size_t length ZEND_FILE_LINE_DC ZEND_FILE_LINE_ORIG_DC)
 {
 	char *p;
+	size_t aligned_size = ZEND_MM_ALIGNED_SIZE(length + 1);
 
-	if (UNEXPECTED(length + 1 == 0)) {
+	if (UNEXPECTED(aligned_size == 0)) {
 		zend_error_noreturn(E_ERROR, "Possible integer overflow in memory allocation (%zu * %zu + %zu)", 1, length, 1);
 	}
-	p = (char *) _emalloc(length + 1 ZEND_FILE_LINE_RELAY_CC ZEND_FILE_LINE_ORIG_RELAY_CC);
+	p = (char *) _emalloc(aligned_size ZEND_FILE_LINE_RELAY_CC ZEND_FILE_LINE_ORIG_RELAY_CC);
 	if (UNEXPECTED(p == NULL)) {
 		return p;
 	}
@@ -2583,11 +2590,12 @@ ZEND_API char* ZEND_FASTCALL _estrndup(const char *s, size_t length ZEND_FILE_LI
 ZEND_API char* ZEND_FASTCALL zend_strndup(const char *s, size_t length)
 {
 	char *p;
+	size_t aligned_size = ZEND_MM_ALIGNED_SIZE(length + 1);
 
-	if (UNEXPECTED(length + 1 == 0)) {
+	if (UNEXPECTED(aligned_size == 0)) {
 		zend_error_noreturn(E_ERROR, "Possible integer overflow in memory allocation (%zu * %zu + %zu)", 1, length, 1);
 	}
-	p = (char *) malloc(length + 1);
+	p = (char *) malloc(aligned_size);
 	if (UNEXPECTED(p == NULL)) {
 		return p;
 	}
@@ -2863,7 +2871,7 @@ static ZEND_COLD ZEND_NORETURN void zend_out_of_memory(void)
 
 ZEND_API void * __zend_malloc(size_t len)
 {
-	void *tmp = malloc(len);
+	void *tmp = malloc(ZEND_MM_ALIGNED_SIZE(len));
 	if (EXPECTED(tmp)) {
 		return tmp;
 	}
@@ -2879,7 +2887,7 @@ ZEND_API void * __zend_calloc(size_t nmemb, size_t len)
 
 ZEND_API void * __zend_realloc(void *p, size_t len)
 {
-	p = realloc(p, len);
+	p = realloc(p, ZEND_MM_ALIGNED_SIZE(len));
 	if (EXPECTED(p)) {
 		return p;
 	}

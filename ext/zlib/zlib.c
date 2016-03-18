@@ -1168,12 +1168,12 @@ PHP_FUNCTION(deflate_add)
 	switch (status) {
 		case Z_OK:
 			ZSTR_LEN(out) = (char *) ctx->next_out - ZSTR_VAL(out);
-			ZSTR_VAL(out)[ZSTR_LEN(out)] = 0;
+			ZSTR_ZERO_OUT_TERMINATOR(out);
 			RETURN_STR(out);
 			break;
 		case Z_STREAM_END:
 			ZSTR_LEN(out) = (char *) ctx->next_out - ZSTR_VAL(out);
-			ZSTR_VAL(out)[ZSTR_LEN(out)] = 0;
+			ZSTR_ZERO_OUT_TERMINATOR(out);
 			deflateReset(ctx);
 			RETURN_STR(out);
 			break;

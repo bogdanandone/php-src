@@ -86,6 +86,7 @@ ZEND_API void ZEND_FASTCALL smart_str_append_escaped(smart_str *str, const char 
 	smart_str_alloc(str, len, 0);
 	res = &ZSTR_VAL(str->s)[ZSTR_LEN(str->s)];
 	ZSTR_LEN(str->s) += len;
+	ZSTR_ZERO_OUT_TERMINATOR(str->s);
 
 	for (i = 0; i < l; ++i) {
 		unsigned char c = s[i];

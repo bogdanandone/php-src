@@ -444,6 +444,7 @@ PHPAPI zend_string *php_session_create_id(PS_CREATE_SID_ARGS) /* {{{ */
 
 	outid = zend_string_alloc((digest_len + 2) * ((8.0f / PS(hash_bits_per_character) + 0.5)), 0);
 	ZSTR_LEN(outid) = (size_t)(bin_to_readable((char *)digest, digest_len, ZSTR_VAL(outid), (char)PS(hash_bits_per_character)) - (char *)&ZSTR_VAL(outid));
+	ZSTR_ZERO_OUT_TERMINATOR(outid);
 	efree(digest);
 
 	return outid;
