@@ -121,26 +121,12 @@ static zend_always_inline void zend_memcpy_aligned(void *dest, const void *src, 
 	const zend_long* s = (const zend_long*)src;
 	size_t cnt = (n + SIZEOF_ZEND_LONG-1) >> SIZEOF_ZEND_LONG_LOG2;
 #if 0
-#if 1
-	__asm__ volatile(
-			"1:	test %2,%2;"
-			"		jz 2;"
-			"		movsq;"
-			"		dec %2;"
-			"		jmp 1;"
-			"2:"
-		:/*"=&S" (s), "=&D" (d),*/ "=&r" (cnt)
-		:"S"(s), "D"(d), "0"(cnt)
-		:"rsi", "rdi"
-		);
-#else
 	__asm__ volatile(
 		"rep movsq;"
 		:"=&S" (s), "=&D" (d), "=&c" (cnt)
 		:"0"(s), "1"(d), "2"(cnt)
 		://"memory"
 		);
-#endif
 #else
 	while (cnt > 0) {
 		*d++ = *s++;
